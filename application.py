@@ -6,7 +6,7 @@
 from flask import Flask, jsonify, request
 from flask.wrappers import Response
 
-from .src.date_prefix_parsing.date_prefix_parser import get_date_interval
+from src.date_prefix_parsing.date_prefix_parser import get_date_interval
 
 app = Flask(__name__)
 
