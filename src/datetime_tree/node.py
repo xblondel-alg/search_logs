@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
+from typing import Dict, Generator, Generic, Iterable, List, Optional, Tuple, TypeVar
 from datetime import datetime
 
 # type variable for the data type at the leaf of the tree
@@ -50,7 +50,7 @@ class Node(ABC, Generic[TDataType]):
     @abstractmethod
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
-    ) -> Iterable[TDataType]:
+    ) -> Generator[TDataType, None, None]:
         """
         Find all values contained in the passed interval.
 
@@ -115,13 +115,25 @@ class NonDataNode(Node[TDataType]):
 
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
-    ) -> Iterable[TDataType]:
+    ) -> Generator[TDataType, None, None]:
         """
         Find all values contained in the passed interval.
 
         :param interval: Open interval for the start and end.
         """
-        raise ValueError("Not implemented")
+        start, end = interval
+        start_index = self._get_index_from_key_part(
+            self._extract_next_level_key_part(start)
+        )
+        end_index = self._get_index_from_key_part(
+            self._extract_next_level_key_part(end)
+        )
+        # we do not want to exclude the end index, as both start and end index could
+        # have the same value
+        for index in range(start_index, end_index + 1):
+            child = self._children[index]
+            if child is not None:
+                yield from child.get_values_for_interval(interval)
 
     def _get_index_from_key_part(self, key_part: int) -> int:
         """
@@ -193,13 +205,15 @@ class MinuteNode(Node[TDataType]):
 
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
-    ) -> Iterable[TDataType]:
+    ) -> Generator[TDataType, None, None]:
         """
         Find all values contained in the passed interval.
 
         :param interval: Open interval for the start and end.
         """
-        raise ValueError("Not implemented")
+        start, end = interval
+        if start.minute <= self._level_value < end.minute:
+            yield from self._values
 
 
 class HourNode(NonDataNode[TDataType]):
@@ -347,10 +361,15 @@ class RootNode(Node[TDataType]):
 
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
-    ) -> Iterable[TDataType]:
+    ) -> Generator[TDataType, None, None]:
         """
         Find all values contained in the passed interval.
 
         :param interval: Open interval for the start and end.
         """
-        raise ValueError("Not implemented")
+        start, end = interval
+        for year in sorted(self._children.keys()):
+            if year > end.year:
+                break
+            if year >= start.year:
+                yield from self._children[year].get_values_for_interval(interval)

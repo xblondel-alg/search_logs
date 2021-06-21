@@ -103,11 +103,13 @@ class TestNode:
 
         # we expect to find the values for key2, but not for key3 (as the interval is open)
         expected = [value2_1, value2_2]
-        actual = tree.get_values_for_interval(
+        actual_generator = tree.get_values_for_interval(
             (
                 key2,
                 key3,
             )
         )
+        # resolve the generator
+        actual = list(actual_generator)
 
         assert expected == actual
