@@ -27,3 +27,10 @@ A Makefile provides you with the following commands:
 ## API
 
 The API uses Flask and Werkzeug. Werkzeug being a development platform, additional deployment options would be needed to ship to production, to use a production-ready web server (such as nginx).
+
+We expose the two requested routes:
+
+- `GET /1/queries/count/<DATE_PREFIX>`
+- `GET /1/queries/popular/<DATE_PREFIX>?size=<SIZE>`
+
+In this version, we did not pay much attention to the route structure. Most notably, versions are hardcoded in the route names.
