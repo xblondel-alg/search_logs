@@ -1,7 +1,7 @@
+from datetime import datetime
+
 import pytest
 from src.date_prefix_parsing.date_prefix_parser import get_date_interval
-
-from datetime import datetime
 
 
 class TestDatePrefixParser:

@@ -6,6 +6,8 @@
 from flask import Flask, jsonify, request
 from flask.wrappers import Response
 
+from .src.date_prefix_parsing.date_prefix_parser import get_date_interval
+
 app = Flask(__name__)
 
 
@@ -27,6 +29,7 @@ def count_handler(date_prefix: str) -> Response:
     Raises if the date prefix is in an invalid format.
     """
     app.logger.debug(f"Date prefix: {date_prefix}")
+    date_interval = get_date_interval(date_prefix)
     return jsonify({"count": 0})
 
 
@@ -48,4 +51,5 @@ def popular_handler(date_prefix: str) -> Response:
     app.logger.debug(f"Size: {size}")
     if size <= 0:
         raise ValueError(f"Invalid size value {size}")
+    date_interval = get_date_interval(date_prefix)
     return jsonify({"count": 0})

@@ -2,11 +2,11 @@
     Module providing function to parse a date received as a parameter from the API.
 """
 
-from typing import Tuple
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-
 import re
+from datetime import datetime, timedelta
+from typing import Tuple
+
+from dateutil.relativedelta import relativedelta
 
 STRING_REGEX_YEAR = r"(?P<year>\d\d\d\d)"
 STRING_REGEX_MONTH = r"(?P<month>\d\d)"
@@ -39,6 +39,9 @@ def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
     And so on for all possible parameters.
 
     :param date_prefix: Date prefix to build the interval from.
+
+    Remark: There certainly is a smarter way to do this, with a dictionary of all the regexes, but this
+        make for a more readable, even though a bit tedious, code.
     """
     match = PREFIX_PARSER_REGEX_MINUTE.match(date_prefix)
     if match is not None:
