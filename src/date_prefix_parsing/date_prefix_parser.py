@@ -5,6 +5,10 @@
 from typing import Tuple
 from datetime import datetime
 
+import re
+
+PREFIX_PARSER_REGEX = re.compile(r"(?P<year>\d\d\d\d)")
+
 
 def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
     """
@@ -19,4 +23,12 @@ def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
 
     :param date_prefix: Date prefix to build the interval from.
     """
-    raise ValueError("Not yet implemented")
+    match = PREFIX_PARSER_REGEX.match(date_prefix)
+    if match is None:
+        raise ValueError(
+            "Invalid date prefix format - Expected YYYY[-MM[-DD[ hh[:mm]]]"
+        )
+    if not match.group("year"):
+        raise ValueError("The YYYY part is mandatory")
+    year = int(match.group("year"))
+    return (datetime(year, 1, 1, 0, 0, 0), datetime(year + 1, 1, 1, 0, 0, 0))
