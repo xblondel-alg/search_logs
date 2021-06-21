@@ -3,11 +3,28 @@
 """
 
 from typing import Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 import re
 
-PREFIX_PARSER_REGEX = re.compile(r"(?P<year>\d\d\d\d)")
+STRING_REGEX_YEAR = r"(?P<year>\d\d\d\d)"
+STRING_REGEX_MONTH = r"(?P<month>\d\d)"
+STRING_REGEX_DAY = r"(?P<day>\d\d)"
+STRING_REGEX_HOUR = r"(?P<hour>\d\d)"
+STRING_REGEX_MINUTE = r"(?P<minute>\d\d)"
+
+PREFIX_PARSER_REGEX_YEAR = re.compile(STRING_REGEX_YEAR)
+PREFIX_PARSER_REGEX_MONTH = re.compile(f"{STRING_REGEX_YEAR}-{STRING_REGEX_MONTH}")
+PREFIX_PARSER_REGEX_DAY = re.compile(
+    f"{STRING_REGEX_YEAR}-{STRING_REGEX_MONTH}-{STRING_REGEX_DAY}"
+)
+PREFIX_PARSER_REGEX_HOUR = re.compile(
+    f"{STRING_REGEX_YEAR}-{STRING_REGEX_MONTH}-{STRING_REGEX_DAY} {STRING_REGEX_HOUR}"
+)
+PREFIX_PARSER_REGEX_MINUTE = re.compile(
+    f"{STRING_REGEX_YEAR}-{STRING_REGEX_MONTH}-{STRING_REGEX_DAY} {STRING_REGEX_HOUR}:{STRING_REGEX_MINUTE}"
+)
 
 
 def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
@@ -23,12 +40,47 @@ def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
 
     :param date_prefix: Date prefix to build the interval from.
     """
-    match = PREFIX_PARSER_REGEX.match(date_prefix)
-    if match is None:
-        raise ValueError(
-            "Invalid date prefix format - Expected YYYY[-MM[-DD[ hh[:mm]]]"
+    match = PREFIX_PARSER_REGEX_MINUTE.match(date_prefix)
+    if match is not None:
+        start = datetime(
+            int(match.group("year")),
+            int(match.group("month")),
+            int(match.group("day")),
+            int(match.group("hour")),
+            int(match.group("minute")),
         )
-    if not match.group("year"):
-        raise ValueError("The YYYY part is mandatory")
-    year = int(match.group("year"))
-    return (datetime(year, 1, 1, 0, 0, 0), datetime(year + 1, 1, 1, 0, 0, 0))
+        end = start + timedelta(minutes=1)
+        return (start, end)
+    match = PREFIX_PARSER_REGEX_HOUR.match(date_prefix)
+    if match is not None:
+        start = datetime(
+            int(match.group("year")),
+            int(match.group("month")),
+            int(match.group("day")),
+            int(match.group("hour")),
+            0,
+        )
+        end = start + timedelta(hours=1)
+        return (start, end)
+    match = PREFIX_PARSER_REGEX_DAY.match(date_prefix)
+    if match is not None:
+        start = datetime(
+            int(match.group("year")),
+            int(match.group("month")),
+            int(match.group("day")),
+            0,
+            0,
+        )
+        end = start + timedelta(days=1)
+        return (start, end)
+    match = PREFIX_PARSER_REGEX_MONTH.match(date_prefix)
+    if match is not None:
+        start = datetime(int(match.group("year")), int(match.group("month")), 1, 0, 0)
+        end = start + relativedelta(months=1)
+        return (start, end)
+    match = PREFIX_PARSER_REGEX_YEAR.match(date_prefix)
+    if match is not None:
+        start = datetime(int(match.group("year")), 1, 1, 0, 0)
+        end = start + relativedelta(years=1)
+        return (start, end)
+    raise ValueError("Invalid date prefix format - Expected YYYY[-MM[-DD[ hh[:mm]]]")
