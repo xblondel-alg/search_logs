@@ -33,17 +33,9 @@ class Node(ABC, Generic[TDataType]):
         self._start = start
         self._end = end
 
-    def overlaps_interval(self, interval: Tuple[datetime, datetime]) -> bool:
-        """
-        Check that this object interval and the interval passed in parameter overlap.
-
-        :param interval: Interval to check.
-        """
-        start, end = interval
-        start_matches = self._start < end
-        end_matches = start < self._end
-        return start_matches and end_matches
-
+    #
+    # Abstract interface
+    #
     @abstractmethod
     def add_value(self, key: datetime, value: TDataType) -> None:
         """
@@ -51,18 +43,6 @@ class Node(ABC, Generic[TDataType]):
 
         :param key: Key to insert at
         :param value: Value to insert
-        """
-        pass
-
-    @abstractmethod
-    def get_values_for_exact_key(self, key: datetime) -> Iterable[TDataType]:
-        """
-        Get the values exactly matching a key.
-        May return an empty iterable if nothing found.
-
-        :param key: Key to find the values for.
-
-        This method is mostly used in tests.
         """
         pass
 
@@ -76,6 +56,20 @@ class Node(ABC, Generic[TDataType]):
         :param interval: Open interval for the start and end.
         """
         pass
+
+    #
+    # Protected methods
+    #
+    def _overlaps_interval(self, interval: Tuple[datetime, datetime]) -> bool:
+        """
+        Check that this object interval and the interval passed in parameter overlap.
+
+        :param interval: Interval to check.
+        """
+        start, end = interval
+        start_matches = self._start < end
+        end_matches = start < self._end
+        return start_matches and end_matches
 
 
 class NonDataNode(Node[TDataType]):
@@ -123,20 +117,6 @@ class NonDataNode(Node[TDataType]):
         assert node is not None
         node.add_value(key, value)
 
-    def get_values_for_exact_key(self, key: datetime) -> Iterable[TDataType]:
-        """
-        Get the values exactly matching a key.
-        May return an empty iterable if nothing found.
-
-        :param key: Key to find the values for.
-        """
-        key_part = self._extract_next_level_key_part(key)
-        index = self._get_index_from_key_part(key_part)
-        node = self._children[index]
-        if node is None:
-            return []
-        return node.get_values_for_exact_key(key)
-
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
     ) -> Generator[TDataType, None, None]:
@@ -145,7 +125,7 @@ class NonDataNode(Node[TDataType]):
 
         :param interval: Open interval for the start and end.
         """
-        matches = self.overlaps_interval(interval)
+        matches = self._overlaps_interval(interval)
         if matches:
             for child in [c for c in self._children if c is not None]:
                 yield from child.get_values_for_interval(interval)
@@ -205,17 +185,6 @@ class MinuteNode(Node[TDataType]):
             raise ValueError(f"Trying to insert key {key} at minute {self._key_part}")
         self._values.append(value)
 
-    def get_values_for_exact_key(self, key: datetime) -> Iterable[TDataType]:
-        """
-        Get the values exactly matching a key.
-        May return an empty iterable if nothing found.
-
-        :param key: Key to find the values for.
-        """
-        if self._key_part == key.minute:
-            return self._values
-        return []
-
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
     ) -> Generator[TDataType, None, None]:
@@ -226,7 +195,7 @@ class MinuteNode(Node[TDataType]):
 
         Since the minute is at the leaf, matching a minute returns all its contents.
         """
-        if self.overlaps_interval(interval):
+        if self._overlaps_interval(interval):
             yield from self._values
 
 
@@ -397,11 +366,6 @@ class RootNode(Node[TDataType]):
         else:
             node = self._children[key.year]
         node.add_value(key, value)
-
-    def get_values_for_exact_key(self, key: datetime) -> Iterable[TDataType]:
-        if key.year in self._children:
-            return self._children[key.year].get_values_for_exact_key(key)
-        return []
 
     def get_values_for_interval(
         self, interval: Tuple[datetime, datetime]
