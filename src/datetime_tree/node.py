@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Generic, Iterable, List, Optional, TypeVar
+from typing import Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 from datetime import datetime
 
 # type variable for the data type at the leaf of the tree
@@ -44,6 +44,17 @@ class Node(ABC, Generic[TDataType]):
         :param key: Key to find the values for.
 
         This method is mostly used in tests.
+        """
+        pass
+
+    @abstractmethod
+    def get_values_for_interval(
+        self, interval: Tuple[datetime, datetime]
+    ) -> Iterable[TDataType]:
+        """
+        Find all values contained in the passed interval.
+
+        :param interval: Open interval for the start and end.
         """
         pass
 
@@ -101,6 +112,16 @@ class NonDataNode(Node[TDataType]):
         if node is None:
             return []
         return node.get_values_for_exact_key(key)
+
+    def get_values_for_interval(
+        self, interval: Tuple[datetime, datetime]
+    ) -> Iterable[TDataType]:
+        """
+        Find all values contained in the passed interval.
+
+        :param interval: Open interval for the start and end.
+        """
+        raise ValueError("Not implemented")
 
     def _get_index_from_key_part(self, key_part: int) -> int:
         """
@@ -169,6 +190,16 @@ class MinuteNode(Node[TDataType]):
         if self._level_value == key.minute:
             return self._values
         return []
+
+    def get_values_for_interval(
+        self, interval: Tuple[datetime, datetime]
+    ) -> Iterable[TDataType]:
+        """
+        Find all values contained in the passed interval.
+
+        :param interval: Open interval for the start and end.
+        """
+        raise ValueError("Not implemented")
 
 
 class HourNode(NonDataNode[TDataType]):
@@ -313,3 +344,13 @@ class RootNode(Node[TDataType]):
         if key.year in self._children:
             return self._children[key.year].get_values_for_exact_key(key)
         return []
+
+    def get_values_for_interval(
+        self, interval: Tuple[datetime, datetime]
+    ) -> Iterable[TDataType]:
+        """
+        Find all values contained in the passed interval.
+
+        :param interval: Open interval for the start and end.
+        """
+        raise ValueError("Not implemented")

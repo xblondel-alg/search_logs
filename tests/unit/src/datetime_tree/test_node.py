@@ -79,3 +79,35 @@ class TestNode:
         actual = tree.get_values_for_exact_key(key)
 
         assert expected == actual
+
+    def test_find_minute_interval(self, tree: RootNode[str]) -> None:
+        """
+        Should find all data in a minute interval.
+        """
+        # we fill 3 consecutive minutes, and we look for the middle one
+        key1 = datetime(2015, 10, 1, 12, 22)
+        value1_1 = "test1_1"
+        value1_2 = "test1_2"
+        tree.add_value(key1, value1_1)
+        tree.add_value(key1, value1_2)
+        key2 = datetime(2015, 10, 1, 12, 23)
+        value2_1 = "test2_1"
+        value2_2 = "test2_2"
+        tree.add_value(key2, value2_1)
+        tree.add_value(key2, value2_2)
+        key3 = datetime(2015, 10, 1, 12, 24)
+        value3_1 = "test3_1"
+        value3_2 = "test3_2"
+        tree.add_value(key3, value3_1)
+        tree.add_value(key3, value3_2)
+
+        # we expect to find the values for key2, but not for key3 (as the interval is open)
+        expected = [value2_1, value2_2]
+        actual = tree.get_values_for_interval(
+            (
+                key2,
+                key3,
+            )
+        )
+
+        assert expected == actual
