@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Generator, Generic, Iterable, List, Optional, Tuple, TypeVar
 from datetime import datetime, timedelta
+from typing import Dict, Generator, Generic, List, Optional, Tuple, TypeVar
+
 from dateutil.relativedelta import relativedelta
 
 # type variable for the data type at the leaf of the tree
 TDataType = TypeVar("TDataType")
-
 
 class Node(ABC, Generic[TDataType]):
     """
