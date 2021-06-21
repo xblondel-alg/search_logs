@@ -157,9 +157,8 @@ class TestNode:
         """
         Should find all data in an hour interval.
         """
-        # we fill 3 consecutive minutes, and we look for the middle one
-        # note that we use the same minute, to detect problems where the minute processing
-        # incorrectly handles the hours
+        # we fill 3 consecutive hours, and we look for the middle one
+        # note that all other values are identical, to avoid false positives
         key1 = datetime(2015, 10, 1, 12, 22)
         value1_1 = "test1_1"
         value1_2 = "test1_2"
@@ -194,8 +193,7 @@ class TestNode:
         Should find all data in an interval containing multiple hours
         """
         # we fill 4 consecutive hours, and we look for the two middle ones
-        # note that we use the same minute, to detect problems where the minute processing
-        # incorrectly handles the hours
+        # note that all other values are identical, to avoid false positives
 
         key1 = datetime(2015, 10, 1, 12, 22)
         value1_1 = "test1_1"
