@@ -34,3 +34,17 @@ We expose the two requested routes:
 - `GET /1/queries/popular/<DATE_PREFIX>?size=<SIZE>`
 
 In this version, we did not pay much attention to the route structure. Most notably, versions are hardcoded in the route names.
+
+## Date prefix parsing
+
+Date prefixes are parsed using the `get_date_interval` function of the `src/date_prefix_parsing/date_prefix_parser.py` module.
+
+Given a date prefix, it returns the matching interval. For instance:
+
+    - if YYYY, returns [YYYY-01-01 00:00, YYYY+1-01-01 00:00] (full year)
+    - if YYYY-MM, returns [YYYY-MM-01 00:00, YYYY-MM+1-01 00:00] (full month, deal with YYYY-12 => YYYY+1-01)
+    And so on for all possible parameters.
+
+It tackles the `datetime` and `dateutils` modules to handle date arithmetic.
+
+It is tested in `tests/unit/src/date_prefix_parsing/test_date_prefix_parser.py`.
