@@ -147,9 +147,8 @@ class NonDataNode(Node[TDataType]):
         """
         matches = self.overlaps_interval(interval)
         if matches:
-            for child in self._children:
-                if child is not None:
-                    yield from child.get_values_for_interval(interval)
+            for child in [c for c in self._children if c is not None]:
+                yield from child.get_values_for_interval(interval)
 
     def _get_index_from_key_part(self, key_part: int) -> int:
         """
