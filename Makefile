@@ -1,3 +1,11 @@
+#
+# Commands to start the application and perform source code checks
+#
+
+## Start the application
+start:
+	FLASK_APP=application FLASK_ENV=development flask run
+
 ## Apply black linter to the source tree
 black:
 	black --exclude ".venv*|.vscode*" .
