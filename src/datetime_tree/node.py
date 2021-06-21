@@ -14,7 +14,7 @@ class Node(ABC, Generic[TDataType]):
 
     def __init__(
         self,
-        level_value: int,
+        key_part: int,
         max_children_number: int,
         children_index_base: int,
         start: datetime,
@@ -23,11 +23,11 @@ class Node(ABC, Generic[TDataType]):
         """
         Constructor.
 
-        :param level_value: Value at the given level (e.g. the year, the month etc.)
+        :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
         """
-        self._level_value = level_value
+        self._key_part = key_part
         self._max_children_number = max_children_number
         self._children_index_base = children_index_base
         self._start = start
@@ -85,7 +85,7 @@ class NonDataNode(Node[TDataType]):
 
     def __init__(
         self,
-        level_value: int,
+        key_part: int,
         max_children_number: int,
         children_index_base: int,
         start: datetime,
@@ -94,13 +94,11 @@ class NonDataNode(Node[TDataType]):
         """
         Constructor.
 
-        :param level_value: Value at the given level (e.g. the year, the month etc.)
+        :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
         """
-        super().__init__(
-            level_value, max_children_number, children_index_base, start, end
-        )
+        super().__init__(key_part, max_children_number, children_index_base, start, end)
 
         self._children: List[Optional[Node[TDataType]]] = [
             None for _ in range(self._max_children_number)
@@ -187,13 +185,13 @@ class MinuteNode(Node[TDataType]):
     It is a leaf node, as it also contains the data.
     """
 
-    def __init__(self, level_value: int, start: datetime) -> None:
+    def __init__(self, key_part: int, start: datetime) -> None:
         """
         Constructor.
 
-        :param level_value: Value at the given level (e.g. the year, the month etc.)
+        :param key_part: Key part at the given level (e.g. the year, the month etc.)
         """
-        super().__init__(level_value, 0, 0, start, start + timedelta(minutes=1))
+        super().__init__(key_part, 0, 0, start, start + timedelta(minutes=1))
         # since we are at a leaf node, we add the values in heap, as we will always return them all
         self._values: List[TDataType] = []
 
@@ -204,10 +202,8 @@ class MinuteNode(Node[TDataType]):
         :param key: Insertion key.
         :param value: Value to insert.
         """
-        if key.minute != self._level_value:
-            raise ValueError(
-                f"Trying to insert key {key} at minute {self._level_value}"
-            )
+        if key.minute != self._key_part:
+            raise ValueError(f"Trying to insert key {key} at minute {self._key_part}")
         self._values.append(value)
 
     def get_values_for_exact_key(self, key: datetime) -> Iterable[TDataType]:
@@ -217,7 +213,7 @@ class MinuteNode(Node[TDataType]):
 
         :param key: Key to find the values for.
         """
-        if self._level_value == key.minute:
+        if self._key_part == key.minute:
             return self._values
         return []
 
@@ -228,6 +224,8 @@ class MinuteNode(Node[TDataType]):
         Find all values contained in the passed interval.
 
         :param interval: Open interval for the start and end.
+
+        Since the minute is at the leaf, matching a minute returns all its contents.
         """
         if self.overlaps_interval(interval):
             yield from self._values
@@ -238,9 +236,9 @@ class HourNode(NonDataNode[TDataType]):
     Node modelling an hour.
     """
 
-    def __init__(self, level_value: int, start: datetime) -> None:
+    def __init__(self, key_part: int, start: datetime) -> None:
         # 60 minutes in an hour, base 0
-        super().__init__(level_value, 60, 0, start, start + timedelta(hours=1))
+        super().__init__(key_part, 60, 0, start, start + timedelta(hours=1))
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -249,7 +247,7 @@ class HourNode(NonDataNode[TDataType]):
         :param key_part: Key part for the minute.
         """
         return MinuteNode[TDataType](
-            level_value=key_part,
+            key_part=key_part,
             start=datetime(
                 self._start.year,
                 self._start.month,
@@ -274,9 +272,9 @@ class DayNode(NonDataNode[TDataType]):
     Node modelling an day.
     """
 
-    def __init__(self, level_value: int, start: datetime) -> None:
+    def __init__(self, key_part: int, start: datetime) -> None:
         # 24 hours in a day, base 0
-        super().__init__(level_value, 24, 0, start, start + timedelta(days=1))
+        super().__init__(key_part, 24, 0, start, start + timedelta(days=1))
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -285,7 +283,7 @@ class DayNode(NonDataNode[TDataType]):
         :param key_part: Key part for the hour.
         """
         return HourNode[TDataType](
-            level_value=key_part,
+            key_part=key_part,
             start=datetime(
                 self._start.year, self._start.month, self._start.day, key_part, 0, 0
             ),
@@ -305,11 +303,11 @@ class MonthNode(NonDataNode[TDataType]):
     Node modelling a month.
     """
 
-    def __init__(self, level_value: int, start: datetime) -> None:
+    def __init__(self, key_part: int, start: datetime) -> None:
         # we handle the maximum possible number of days, independently of the
         # actual number of days in a given month
         # days are numbered with a base 1
-        super().__init__(level_value, 31, 1, start, start + relativedelta(months=1))
+        super().__init__(key_part, 31, 1, start, start + relativedelta(months=1))
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -318,7 +316,7 @@ class MonthNode(NonDataNode[TDataType]):
         :param key_part: Key part for the day.
         """
         return DayNode[TDataType](
-            level_value=key_part,
+            key_part=key_part,
             start=datetime(self._start.year, self._start.month, key_part, 0, 0, 0),
         )
 
@@ -336,15 +334,15 @@ class YearNode(NonDataNode[TDataType]):
     Node modelling a year.
     """
 
-    def __init__(self, level_value: int, start: datetime) -> None:
+    def __init__(self, key_part: int, start: datetime) -> None:
         """
         Constructor.
 
-        :param level_value: Value at the given level (e.g. the year, the month etc.)
+        :param key_part: Value at the given level (e.g. the year, the month etc.)
         """
         # 12 months, starting at 1
         super().__init__(
-            level_value, 12, 1, start=start, end=start + relativedelta(years=1)
+            key_part, 12, 1, start=start, end=start + relativedelta(years=1)
         )
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
@@ -354,7 +352,7 @@ class YearNode(NonDataNode[TDataType]):
         :param key_part: Key part for the month.
         """
         return MonthNode[TDataType](
-            level_value=key_part, start=datetime(self._start.year, key_part, 1, 0, 0, 0)
+            key_part=key_part, start=datetime(self._start.year, key_part, 1, 0, 0, 0)
         )
 
     def _extract_next_level_key_part(self, key: datetime) -> int:
@@ -376,7 +374,7 @@ class RootNode(Node[TDataType]):
         Constructor.
         """
         super().__init__(
-            level_value=-1,
+            key_part=-1,
             max_children_number=0,
             children_index_base=0,
             start=datetime.min,
@@ -394,7 +392,7 @@ class RootNode(Node[TDataType]):
         """
         if key.year not in self._children:
             node = YearNode[TDataType](
-                level_value=key.year, start=datetime(key.year, 1, 1, 0, 0, 0)
+                key_part=key.year, start=datetime(key.year, 1, 1, 0, 0, 0)
             )
             self._children[key.year] = node
         else:
