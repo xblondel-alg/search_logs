@@ -33,7 +33,12 @@ class Node(ABC, Generic[TDataType]):
         self._start = start
         self._end = end
 
-    def matches_interval(self, interval: Tuple[datetime, datetime]) -> bool:
+    def overlaps_interval(self, interval: Tuple[datetime, datetime]) -> bool:
+        """
+        Check that this object interval and the interval passed in parameter overlap.
+
+        :param interval: Interval to check.
+        """
         start, end = interval
         start_matches = self._start < end
         end_matches = start < self._end
@@ -142,23 +147,11 @@ class NonDataNode(Node[TDataType]):
 
         :param interval: Open interval for the start and end.
         """
-        matches = self.matches_interval(interval)
+        matches = self.overlaps_interval(interval)
         if matches:
             for child in self._children:
                 if child is not None:
                     yield from child.get_values_for_interval(interval)
-
-    @abstractmethod
-    def _normalize_interval(
-        self, key_part: int, interval: Tuple[datetime, datetime]
-    ) -> Tuple[datetime, datetime]:
-        """
-        Normalize the interval, to limit it to the current level.
-
-        :param key_part: Normalization base
-        :param interval: Interval to normalize
-        """
-        pass
 
     def _get_index_from_key_part(self, key_part: int) -> int:
         """
@@ -236,7 +229,7 @@ class MinuteNode(Node[TDataType]):
 
         :param interval: Open interval for the start and end.
         """
-        if self.matches_interval(interval):
+        if self.overlaps_interval(interval):
             yield from self._values
 
 
@@ -275,24 +268,6 @@ class HourNode(NonDataNode[TDataType]):
         """
         return key.minute
 
-    def _normalize_interval(
-        self, key_part: int, interval: Tuple[datetime, datetime]
-    ) -> Tuple[datetime, datetime]:
-        """
-        Normalize the interval, by focusing it on the current minute.
-
-        :param key_part: Targeted minute
-        :param interval: Original interval
-        """
-        start, end = interval
-        candidate_start = datetime(
-            start.year, start.month, start.day, start.hour, key_part, 0
-        )
-        candidate_end = candidate_start + timedelta(minutes=1)
-        actual_start = max(start, candidate_start)
-        actual_end = min(end, candidate_end)
-        return actual_start, actual_end
-
 
 class DayNode(NonDataNode[TDataType]):
     """
@@ -324,22 +299,6 @@ class DayNode(NonDataNode[TDataType]):
         """
         return key.hour
 
-    def _normalize_interval(
-        self, key_part: int, interval: Tuple[datetime, datetime]
-    ) -> Tuple[datetime, datetime]:
-        """
-        Normalize the interval, by focusing it on the current hour.
-
-        :param key_part: Targeted hour
-        :param interval: Original interval
-        """
-        start, end = interval
-        candidate_start = datetime(start.year, start.month, start.day, key_part, 0, 0)
-        candidate_end = datetime(start.year, start.month, start.day, key_part, 23, 59)
-        actual_start = max(start, candidate_start)
-        actual_end = min(end, candidate_end)
-        return actual_start, actual_end
-
 
 class MonthNode(NonDataNode[TDataType]):
     """
@@ -370,22 +329,6 @@ class MonthNode(NonDataNode[TDataType]):
         :param key: Key to extract from
         """
         return key.day
-
-    def _normalize_interval(
-        self, key_part: int, interval: Tuple[datetime, datetime]
-    ) -> Tuple[datetime, datetime]:
-        """
-        Normalize the interval, by focusing it on the current day.
-
-        :param key_part: Targeted day
-        :param interval: Original interval
-        """
-        start, end = interval
-        candidate_start = datetime(start.year, start.month, key_part, 0, 0, 0)
-        candidate_end = candidate_start + relativedelta(days=1)
-        actual_start = max(start, candidate_start)
-        actual_end = min(end, candidate_end)
-        return actual_start, actual_end
 
 
 class YearNode(NonDataNode[TDataType]):
@@ -421,22 +364,6 @@ class YearNode(NonDataNode[TDataType]):
         :param key: Key to extract from
         """
         return key.month
-
-    def _normalize_interval(
-        self, key_part: int, interval: Tuple[datetime, datetime]
-    ) -> Tuple[datetime, datetime]:
-        """
-        Normalize the interval, by focusing it on the current month.
-
-        :param key_part: Targeted month
-        :param interval: Original interval
-        """
-        start, end = interval
-        candidate_start = datetime(start.year, key_part, 1, 0, 0, 0)
-        candidate_end = candidate_start + relativedelta(months=1)
-        actual_start = max(start, candidate_start)
-        actual_end = min(end, candidate_end)
-        return actual_start, actual_end
 
 
 class RootNode(Node[TDataType]):
@@ -491,17 +418,3 @@ class RootNode(Node[TDataType]):
         for year in range(start.year, end.year + 1):
             if year in self._children:
                 yield from self._children[year].get_values_for_interval(interval)
-
-    def _normalize_interval(self, year: int, interval: Tuple[datetime, datetime]):
-        """
-        Normalize the interval, by focusing it on the current year.
-
-        :param year: Targeted year
-        :param interval: Original interval
-        """
-        start, end = interval
-        candidate_start = datetime(year, 1, 1, 0, 0, 0)
-        candidate_end = datetime(year + 1, 1, 1, 0, 0, 0)
-        actual_start = max(start, candidate_start)
-        actual_end = min(end, candidate_end)
-        return actual_start, actual_end
