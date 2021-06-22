@@ -20,7 +20,7 @@ class SearchEngine:
 
         :param interval: Interval to analyze.
         """
-        dataset = self._get_dataset_from_interval(interval)
+        dataset = self.get_dataset_from_interval(interval)
         return SearchEngine.get_count_from_dataset(dataset)
 
     def get_popular(
@@ -35,13 +35,13 @@ class SearchEngine:
         if size == 0:
             # avoid unnecessary work
             return []
-        dataset = self._get_dataset_from_interval(interval)
+        dataset = self.get_dataset_from_interval(interval)
         return SearchEngine.get_popular_from_dataset(dataset, size)
 
     #
     # Implementation
     #
-    def _get_dataset_from_interval(
+    def get_dataset_from_interval(
         self, interval: Tuple[datetime, datetime]
     ) -> Dict[str, int]:
         """
