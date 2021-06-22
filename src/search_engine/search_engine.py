@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Iterable, OrderedDict, Tuple
+from typing import Dict, Iterable, Tuple
 from src.datetime_tree.node import RootNode
 
 
