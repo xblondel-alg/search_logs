@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from typing import Dict, Generator, Generic, List, Optional, Tuple, TypeVar
+from typing import Dict, Generator, Generic, List, Optional, Tuple, TypeVar, cast
 
 from dateutil.relativedelta import relativedelta
 
@@ -112,10 +112,9 @@ class NonDataNode(Node[TDataType]):
             node = self._create_next_level_instance(key_part)
             self._children[index] = node
         else:
-            node = self._children[index]
-        # this is to prevent type checks from complaining that node may be None
-        # which is guaranteed by the logic above
-        assert node is not None
+            # this cast is here to prevent from assuming that
+            # self._children[index] is None, which is verified by the current logic
+            node = cast(Node[TDataType], self._children[index])
         node.add_value(key, value)
 
     def get_values_for_interval(
@@ -359,8 +358,8 @@ class RootNode(Node[TDataType]):
         :param key: Key to insert at
         :param value: Value to insert
         """
-        if key.year not in self._children:
-            node = YearNode[TDataType](
+        if key.year not in self._children or self._children[key.year] is None:
+            node: Node[TDataType] = YearNode[TDataType](
                 key_part=key.year, start=datetime(key.year, 1, 1, 0, 0, 0)
             )
             self._children[key.year] = node

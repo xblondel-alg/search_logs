@@ -1,6 +1,5 @@
 from datetime import datetime
-from io import TextIOWrapper
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, TextIO, Tuple
 from src.datetime_tree.node import RootNode
 from src.date_prefix_parsing.date_prefix_parser import parse_timestamp
 
@@ -90,7 +89,7 @@ class SearchEngine:
     #
     # Loading
     #
-    def bulk_load_dataset(self, dataset_stream: TextIOWrapper) -> None:
+    def bulk_load_dataset(self, dataset_stream: TextIO) -> None:
         """
         Bulk load the dataset from stream.
 
