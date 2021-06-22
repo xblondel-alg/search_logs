@@ -1,7 +1,8 @@
 from datetime import datetime
+from io import TextIOWrapper
 from typing import Dict, Iterable, Tuple
 from src.datetime_tree.node import RootNode
-
+from src.date_prefix_parsing.date_prefix_parser import parse_timestamp
 
 class SearchEngine:
     """
@@ -84,3 +85,25 @@ class SearchEngine:
         # only keep the first `size` results
         sized_dataset = sorted_dataset[:size]
         return sized_dataset
+
+
+    #
+    # Loading
+    #
+    def bulk_load_dataset(self, dataset_stream: TextIOWrapper) -> None:
+        """
+            Bulk load the dataset from stream.
+
+            :param dataset_stream: Stream to load from.
+
+            The dataset must be a TSV file with structure:
+
+                timestamp<TAB>query
+
+            With timestamp in the form YYYY-MM-DD hh:mm:ss
+        """
+        for line in dataset_stream:
+            timestamp, query = line.split('\t')
+            parsed_timestamp = parse_timestamp(timestamp)
+            self._tree.add_value(parsed_timestamp, query)
+
