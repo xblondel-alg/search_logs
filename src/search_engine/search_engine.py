@@ -1,8 +1,8 @@
 from datetime import datetime
-from io import TextIOWrapper
-from typing import Dict, Iterable, Tuple
-from src.datetime_tree.node import RootNode
+from typing import Dict, Iterable, TextIO, Tuple
+from src.search_tree.search_tree import SearchTree
 from src.date_prefix_parsing.date_prefix_parser import parse_timestamp
+
 
 class SearchEngine:
     """
@@ -13,7 +13,7 @@ class SearchEngine:
         """
         Constructor
         """
-        self._tree = RootNode[str]()
+        self._tree = SearchTree[str]()
 
     def get_distinct_count(self, interval: Tuple[datetime, datetime]) -> int:
         """
@@ -86,24 +86,22 @@ class SearchEngine:
         sized_dataset = sorted_dataset[:size]
         return sized_dataset
 
-
     #
     # Loading
     #
-    def bulk_load_dataset(self, dataset_stream: TextIOWrapper) -> None:
+    def bulk_load_dataset(self, dataset_stream: TextIO) -> None:
         """
-            Bulk load the dataset from stream.
+        Bulk load the dataset from stream.
 
-            :param dataset_stream: Stream to load from.
+        :param dataset_stream: Stream to load from.
 
-            The dataset must be a TSV file with structure:
+        The dataset must be a TSV file with structure:
 
-                timestamp<TAB>query
+            timestamp<TAB>query
 
-            With timestamp in the form YYYY-MM-DD hh:mm:ss
+        With timestamp in the form YYYY-MM-DD hh:mm:ss
         """
         for line in dataset_stream:
-            timestamp, query = line.split('\t')
+            timestamp, query = line.split("\t")
             parsed_timestamp = parse_timestamp(timestamp)
             self._tree.add_value(parsed_timestamp, query)
-
