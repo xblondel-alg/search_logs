@@ -1,4 +1,4 @@
-from typing import Dict, OrderedDict
+from typing import Dict, Iterable, OrderedDict, Tuple
 import pytest
 
 from src.search_engine.search_engine import SearchEngine
@@ -20,57 +20,35 @@ def non_empty_dataset() -> Dict[str, int]:
 
 
 @pytest.fixture
-def popular_query_1() -> OrderedDict[str, int]:
+def popular_query_1() -> Iterable[Tuple[str, int]]:
     """
     One most popular query
     """
-    return OrderedDict(
-        {
-            "value1": 11,
-        }
-    )
+    return [("value1", 11)]
 
 
 @pytest.fixture
-def popular_queries_2() -> OrderedDict[str, int]:
+def popular_queries_2() -> Iterable[Tuple[str, int]]:
     """
     Two most popular queries
     """
-    return OrderedDict(
-        {
-            "value1": 11,
-            "value3": 7,
-        }
-    )
+    return [("value1", 11), ("value3", 7)]
 
 
 @pytest.fixture
-def popular_queries_3() -> OrderedDict[str, int]:
+def popular_queries_3() -> Iterable[Tuple[str, int]]:
     """
     Three most popular queries
     """
-    return OrderedDict(
-        {
-            "value1": 11,
-            "value3": 7,
-            "value2": 5,
-        }
-    )
+    return [("value1", 11), ("value3", 7), ("value2", 5)]
 
 
 @pytest.fixture
-def popular_queries_4() -> OrderedDict[str, int]:
+def popular_queries_4() -> Iterable[Tuple[str, int]]:
     """
     Four most popular queries
     """
-    return OrderedDict(
-        {
-            "value1": 11,
-            "value3": 7,
-            "value2": 5,
-            "value4": 3,
-        }
-    )
+    return [("value1", 11), ("value3", 7), ("value2", 5), ("value4", 3)]
 
 
 class TestSearchEngineGetCountFromDataSet:
@@ -105,7 +83,7 @@ class TestSearchEngineGetPopularFromDataset:
         It should return an empty result with an empty dataset and a size of zero.
         """
         size = 0
-        expected: OrderedDict[str, int] = OrderedDict()
+        expected: Iterable[Tuple[str, int]] = []
         actual = SearchEngine.get_popular_from_dataset(empty_dataset, size)
         assert expected == actual
 
@@ -116,7 +94,7 @@ class TestSearchEngineGetPopularFromDataset:
         It should return an empty result with an empty dataset and a non-zero size.
         """
         size = 3
-        expected: OrderedDict[str, int] = OrderedDict()
+        expected: Iterable[Tuple[str, int]] = []
         actual = SearchEngine.get_popular_from_dataset(empty_dataset, size)
         assert expected == actual
 
@@ -126,8 +104,8 @@ class TestSearchEngineGetPopularFromDataset:
         """
         It should return an empty result with a non-empty dataset and a zero size.
         """
-        size = 3
-        expected: OrderedDict[str, int] = OrderedDict()
+        size = 0
+        expected: Iterable[Tuple[str, int]] = []
         actual = SearchEngine.get_popular_from_dataset(non_empty_dataset, size)
         assert expected == actual
 

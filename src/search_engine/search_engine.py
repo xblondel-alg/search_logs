@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, OrderedDict, Tuple
+from typing import Dict, Iterable, OrderedDict, Tuple
 from src.datetime_tree.node import RootNode
 
 
@@ -25,7 +25,7 @@ class SearchEngine:
 
     def get_popular(
         self, interval: Tuple[datetime, datetime], size: int
-    ) -> OrderedDict[str, int]:
+    ) -> Iterable[Tuple[str, int]]:
         """
         Get the N most popular queries in the interval.
 
@@ -34,7 +34,7 @@ class SearchEngine:
         """
         if size == 0:
             # avoid unnecessary work
-            return OrderedDict()
+            return []
         dataset = self._get_dataset_from_interval(interval)
         return SearchEngine.get_popular_from_dataset(dataset, size)
 
@@ -69,7 +69,7 @@ class SearchEngine:
     @staticmethod
     def get_popular_from_dataset(
         dataset: Dict[str, int], size: int
-    ) -> OrderedDict[str, int]:
+    ) -> Iterable[Tuple[str, int]]:
         """
         Given a dataset, return the first N values with the more occurrences.
 
@@ -78,5 +78,9 @@ class SearchEngine:
         """
         if size == 0 or len(dataset) == 0:
             # skip unnecessary work
-            return OrderedDict()
-        return OrderedDict()
+            return []
+        # sort the dataset to have the highest score first
+        sorted_dataset = sorted(dataset.items(), key=lambda data: data[1], reverse=True)
+        # only keep the first `size` results
+        sized_dataset = sorted_dataset[:size]
+        return sized_dataset
