@@ -3,16 +3,18 @@
 
     The API is quite simple. Most notably, versioning is hardcoded in the routes.
 """
+from os import getenv
+
 from flask import Flask, jsonify, request
 from flask.wrappers import Response
 
+from src.application.setup import setup_application
 from src.date_prefix_parsing.date_prefix_parser import get_date_interval
 from src.search_engine.search_engine import SearchEngine
-from os import getenv
 
-engine = SearchEngine()
-with open(getenv("DATASET_PATH", ""), "r") as f:
-    engine.bulk_load_dataset(f)
+search_engine = SearchEngine()
+setup_application(dataset_path=getenv("DATASET_PATH", ""), search_engine=search_engine)
+
 
 app = Flask(__name__)
 
@@ -34,9 +36,14 @@ def count_handler(date_prefix: str) -> Response:
 
     Raises if the date prefix is in an invalid format.
     """
-    app.logger.debug(f"Date prefix: {date_prefix}")
+    # parse parameter
     date_interval = get_date_interval(date_prefix)
-    return jsonify({"count": engine.get_distinct_count(date_interval)})
+
+    # get value
+    count = search_engine.get_distinct_count(date_interval)
+
+    # format result
+    return jsonify({"count": count})
 
 
 @app.route("/1/queries/popular/<date_prefix>")  # type: ignore
@@ -52,13 +59,16 @@ def popular_handler(date_prefix: str) -> Response:
     Raises if the date prefix is in an invalid format or the size is not a strictly positive integer.
 
     """
-    size = int(request.args.get("size", "3"))
-    app.logger.debug(f"Date prefix: {date_prefix}")
-    app.logger.debug(f"Size: {size}")
+    # parse parameters
+    size = int(request.args.get("size", "-1"))
     if size <= 0:
-        raise ValueError(f"Invalid size value {size}")
+        raise ValueError(f"Invalid or missing size {size}")
     date_interval = get_date_interval(date_prefix)
-    popular_list = engine.get_popular(date_interval, size)
+
+    # get results
+    popular_list = search_engine.get_popular(date_interval, size)
+
+    # format the result
     return jsonify(
         {"queries": [{"query": query, "count": count} for query, count in popular_list]}
     )
