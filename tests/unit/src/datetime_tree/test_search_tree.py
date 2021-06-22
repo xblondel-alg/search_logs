@@ -1,19 +1,19 @@
 from datetime import datetime
 import pytest
-from src.datetime_tree.node import RootNode
+from src.search_tree.search_tree import SearchTree
 
 
 @pytest.fixture
-def tree() -> RootNode[str]:
-    return RootNode[str]()
+def tree() -> SearchTree[str]:
+    return SearchTree[str]()
 
 
-class TestNode:
+class TestSearchTree:
     """
-    Test of the node module.
+    Test of the search_tree module.
     """
 
-    def test_find_minute_interval(self, tree: RootNode[str]) -> None:
+    def test_find_minute_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in a minute interval.
         """
@@ -47,7 +47,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_multiple_minutes_interval(self, tree: RootNode[str]) -> None:
+    def test_find_multiple_minutes_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an interval containing multiple minutes
         """
@@ -86,7 +86,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_hour_interval(self, tree: RootNode[str]) -> None:
+    def test_find_hour_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an hour interval.
         """
@@ -121,7 +121,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_multiple_hours_interval(self, tree: RootNode[str]) -> None:
+    def test_find_multiple_hours_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an interval containing multiple hours
         """
@@ -162,7 +162,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_day_interval(self, tree: RootNode[str]) -> None:
+    def test_find_day_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in a day interval.
         """
@@ -197,7 +197,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_multiple_days_interval(self, tree: RootNode[str]) -> None:
+    def test_find_multiple_days_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an interval containing multiple days
         """
@@ -238,7 +238,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_month_interval(self, tree: RootNode[str]) -> None:
+    def test_find_month_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in a month interval.
         """
@@ -273,7 +273,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_multiple_months_interval(self, tree: RootNode[str]) -> None:
+    def test_find_multiple_months_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an interval containing multiple months.
         """
@@ -314,7 +314,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_year_interval(self, tree: RootNode[str]) -> None:
+    def test_find_year_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in a year interval.
         """
@@ -349,7 +349,7 @@ class TestNode:
 
         assert expected == actual
 
-    def test_find_multiple_years_interval(self, tree: RootNode[str]) -> None:
+    def test_find_multiple_years_interval(self, tree: SearchTree[str]) -> None:
         """
         Should find all data in an interval containing multiple years.
         """

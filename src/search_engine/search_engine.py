@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Dict, Iterable, TextIO, Tuple
-from src.datetime_tree.node import RootNode
+from src.search_tree.search_tree import SearchTree
 from src.date_prefix_parsing.date_prefix_parser import parse_timestamp
 
 
@@ -13,7 +13,7 @@ class SearchEngine:
         """
         Constructor
         """
-        self._tree = RootNode[str]()
+        self._tree = SearchTree[str]()
 
     def get_distinct_count(self, interval: Tuple[datetime, datetime]) -> int:
         """

@@ -332,7 +332,7 @@ class YearNode(NonDataNode[TDataType]):
         return key.month
 
 
-class RootNode(Node[TDataType]):
+class SearchTree(Node[TDataType]):
     """
     Specific class for the root node, that has a specific behavior, as it has an unlimited number of children (the number of years).
     """
