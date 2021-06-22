@@ -22,7 +22,7 @@ class SearchEngine:
         :param interval: Interval to analyze.
         """
         dataset = self.get_dataset_from_interval(interval)
-        return SearchEngine.get_count_from_dataset(dataset)
+        return SearchEngine.get_distinct_count_from_dataset(dataset)
 
     def get_popular(
         self, interval: Tuple[datetime, datetime], size: int
@@ -59,13 +59,15 @@ class SearchEngine:
         return result
 
     @staticmethod
-    def get_count_from_dataset(dataset: Dict[str, int]) -> int:
+    def get_distinct_count_from_dataset(dataset: Dict[str, int]) -> int:
         """
-        Given a dataset, return the total of all the counts.
+        Given a dataset, return the distinct count of elements.
 
         :param dataset: Dataset to analyze.
         """
-        return sum(dataset.values())
+        # to get a distinct count, we ignore the calculated counts and only deal with the
+        # number of keys
+        return len(dataset.keys())
 
     @staticmethod
     def get_popular_from_dataset(

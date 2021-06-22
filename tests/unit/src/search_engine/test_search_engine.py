@@ -87,15 +87,15 @@ class TestSearchEngineGetCountFromDataSet:
         Should return a value of 0 for an empty dataset.
         """
         expected = 0
-        actual = SearchEngine.get_count_from_dataset(empty_dataset)
+        actual = SearchEngine.get_distinct_count_from_dataset(empty_dataset)
         assert expected == actual
 
     def test_non_empty_dataset(self, non_empty_dataset: Dict[str, int]) -> None:
         """
-        It should return the actual sum when the dataset contains data.
+        It should return the distinct count of data, without regards to the number of elements.
         """
-        expected = 26
-        actual = SearchEngine.get_count_from_dataset(non_empty_dataset)
+        expected = 4
+        actual = SearchEngine.get_distinct_count_from_dataset(non_empty_dataset)
         assert expected == actual
 
 
