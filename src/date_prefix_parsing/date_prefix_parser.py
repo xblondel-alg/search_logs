@@ -26,6 +26,7 @@ PREFIX_PARSER_REGEX_MINUTE = re.compile(
     f"{STRING_REGEX_YEAR}-{STRING_REGEX_MONTH}-{STRING_REGEX_DAY} {STRING_REGEX_HOUR}:{STRING_REGEX_MINUTE}"
 )
 
+
 def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
     """
     Given a date prefix in the following form:
@@ -87,13 +88,14 @@ def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
         return (start, end)
     raise ValueError("Invalid date prefix format - Expected YYYY[-MM[-DD[ hh[:mm]]]")
 
+
 def parse_timestamp(timestamp: str) -> datetime:
     """
-        Parse a timestamp in the form:
-            YYYY-MM-DD hh:mm
-        If the timestamp contains seconds, they are ignored.
+    Parse a timestamp in the form:
+        YYYY-MM-DD hh:mm
+    If the timestamp contains seconds, they are ignored.
 
-        :param timestamp: Timestamp to parse.
+    :param timestamp: Timestamp to parse.
     """
     match = PREFIX_PARSER_REGEX_MINUTE.match(timestamp)
     if match is None:

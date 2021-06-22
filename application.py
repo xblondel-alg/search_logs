@@ -59,4 +59,6 @@ def popular_handler(date_prefix: str) -> Response:
         raise ValueError(f"Invalid size value {size}")
     date_interval = get_date_interval(date_prefix)
     popular_list = engine.get_popular(date_interval, size)
-    return jsonify({"queries": [{"query": query, "count": count} for query, count in popular_list]})
+    return jsonify(
+        {"queries": [{"query": query, "count": count} for query, count in popular_list]}
+    )
