@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 # type variable for the data type at the leaf of the tree
 TDataType = TypeVar("TDataType")
 
+
 class Node(ABC, Generic[TDataType]):
     """
     Base class for all types of nodes in the datetime tree.
