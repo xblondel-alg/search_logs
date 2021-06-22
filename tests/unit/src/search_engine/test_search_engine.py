@@ -12,8 +12,8 @@ def empty_dataset() -> Dict[str, int]:
 @pytest.fixture
 def non_empty_dataset() -> Dict[str, int]:
     return {
-        "value1": 11,
         "value2": 5,
+        "value1": 11,
         "value4": 3,
         "value3": 7,
     }
@@ -49,6 +49,32 @@ def popular_queries_4() -> Iterable[Tuple[str, int]]:
     Four most popular queries
     """
     return [("value1", 11), ("value3", 7), ("value2", 5), ("value4", 3)]
+
+
+@pytest.fixture
+def dataset_with_ties() -> Dict[str, int]:
+    return {
+        "value1": 11,
+        "value3": 11,
+        "value4": 3,
+        "value2": 3,
+    }
+
+
+@pytest.fixture
+def popular_queries_with_ties_2() -> Iterable[Tuple[str, int]]:
+    """
+    Two most popular queries with ties
+    """
+    return [("value1", 11), ("value3", 11)]
+
+
+@pytest.fixture
+def popular_queries_with_ties_3() -> Iterable[Tuple[str, int]]:
+    """
+    Three most popular queries with ties
+    """
+    return [("value1", 11), ("value3", 11), ("value4", 3)]
 
 
 class TestSearchEngineGetCountFromDataSet:
@@ -166,3 +192,27 @@ class TestSearchEngineGetPopularFromDataset:
         size = len(non_empty_dataset) * 10
         actual = SearchEngine.get_popular_from_dataset(non_empty_dataset, size)
         assert popular_queries_4 == actual
+
+    def test_dataset_with_ties_and_size_2(
+        self,
+        dataset_with_ties: Dict[str, int],
+        popular_queries_with_ties_2: OrderedDict[str, int],
+    ) -> None:
+        """
+        It should return the two most popular queries with ties sorted in their order in the dataset.
+        """
+        size = 2
+        actual = SearchEngine.get_popular_from_dataset(dataset_with_ties, size)
+        assert popular_queries_with_ties_2 == actual
+
+    def test_dataset_with_ties_and_size_3(
+        self,
+        dataset_with_ties: Dict[str, int],
+        popular_queries_with_ties_3: OrderedDict[str, int],
+    ) -> None:
+        """
+        It should return the three most popular queries with ties sorted in their order in the dataset.
+        """
+        size = 3
+        actual = SearchEngine.get_popular_from_dataset(dataset_with_ties, size)
+        assert popular_queries_with_ties_3 == actual

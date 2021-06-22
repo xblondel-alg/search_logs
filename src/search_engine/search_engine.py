@@ -79,7 +79,7 @@ class SearchEngine:
         if size == 0 or len(dataset) == 0:
             # skip unnecessary work
             return []
-        # sort the dataset to have the highest score first
+        # sort the dataset to have the highest scores first
         sorted_dataset = sorted(dataset.items(), key=lambda data: data[1], reverse=True)
         # only keep the first `size` results
         sized_dataset = sorted_dataset[:size]
