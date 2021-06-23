@@ -39,6 +39,8 @@ The dataset is loaded when the application starts.
 
 The API uses Flask and Werkzeug. Werkzeug being a development platform, additional deployment options would be needed to ship to production with a production-ready web server (such as nginx).
 
+The server listens to port 5000 on localhost.
+
 We expose the two requested routes:
 
 - `GET /1/queries/count/<DATE_PREFIX>`
