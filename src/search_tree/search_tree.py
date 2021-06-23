@@ -15,7 +15,6 @@ class Node(ABC, Generic[TDataType]):
 
     def __init__(
         self,
-        key_part: int,
         max_children_number: int,
         children_index_base: int,
         start: datetime,
@@ -24,13 +23,12 @@ class Node(ABC, Generic[TDataType]):
         """
         Constructor.
 
-        :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
         :param start: Start of the interval contained in the node.
         :param end: End of the interval contained in the node (excluded).
         """
-        self._key_part = key_part
+        self._key_part = self._get_keypart(start)
         self._max_children_number = max_children_number
         self._children_index_base = children_index_base
         self._start = start
@@ -74,6 +72,15 @@ class Node(ABC, Generic[TDataType]):
         end_matches = start < self._end
         return start_matches and end_matches
 
+    @abstractmethod
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        pass
+
 
 class NonDataNode(Node[TDataType]):
     """
@@ -82,7 +89,6 @@ class NonDataNode(Node[TDataType]):
 
     def __init__(
         self,
-        key_part: int,
         max_children_number: int,
         children_index_base: int,
         start: datetime,
@@ -91,13 +97,12 @@ class NonDataNode(Node[TDataType]):
         """
         Constructor.
 
-        :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
         :param start: Start of the interval contained in the node.
         :param end: End of the interval contained in the node (excluded).
         """
-        super().__init__(key_part, max_children_number, children_index_base, start, end)
+        super().__init__(max_children_number, children_index_base, start, end)
 
         self._children: List[Optional[Node[TDataType]]] = [
             None for _ in range(self._max_children_number)
@@ -168,14 +173,18 @@ class MinuteNode(Node[TDataType]):
     It is a leaf node, as it also contains the data.
     """
 
-    def __init__(self, key_part: int, start: datetime) -> None:
+    def __init__(self, start: datetime) -> None:
         """
         Constructor.
 
-        :param key_part: Key part of the level.
         :param start: Start of the range.
         """
-        super().__init__(key_part, 0, 0, start, start + timedelta(minutes=1))
+        super().__init__(
+            max_children_number=0,
+            children_index_base=0,
+            start=start,
+            end=start + timedelta(minutes=1),
+        )
         # since we are at a leaf node, we add the values in heap, as we will always return them all
         self._values: List[TDataType] = []
 
@@ -203,21 +212,33 @@ class MinuteNode(Node[TDataType]):
         if self._overlaps_interval(interval):
             yield from self._values
 
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        return timestamp.minute
+
 
 class HourNode(NonDataNode[TDataType]):
     """
     Node modelling an hour.
     """
 
-    def __init__(self, key_part: int, start: datetime) -> None:
+    def __init__(self, start: datetime) -> None:
         """
         Constructor.
 
-        :param key_part: Key part of the level.
         :param start: Start of the range.
         """
         # 60 minutes in an hour, base 0
-        super().__init__(key_part, 60, 0, start, start + timedelta(hours=1))
+        super().__init__(
+            max_children_number=60,
+            children_index_base=0,
+            start=start,
+            end=start + timedelta(hours=1),
+        )
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -226,7 +247,6 @@ class HourNode(NonDataNode[TDataType]):
         :param key_part: Key part for the minute.
         """
         return MinuteNode[TDataType](
-            key_part=key_part,
             start=datetime(
                 self._start.year,
                 self._start.month,
@@ -245,21 +265,33 @@ class HourNode(NonDataNode[TDataType]):
         """
         return key.minute
 
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        return timestamp.hour
+
 
 class DayNode(NonDataNode[TDataType]):
     """
     Node modelling an day.
     """
 
-    def __init__(self, key_part: int, start: datetime) -> None:
+    def __init__(self, start: datetime) -> None:
         """
         Constructor.
 
-        :param key_part: Key part of the level.
         :param start: Start of the range.
         """
         # 24 hours in a day, base 0
-        super().__init__(key_part, 24, 0, start, start + timedelta(days=1))
+        super().__init__(
+            max_children_number=24,
+            children_index_base=0,
+            start=start,
+            end=start + timedelta(days=1),
+        )
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -268,7 +300,6 @@ class DayNode(NonDataNode[TDataType]):
         :param key_part: Key part for the hour.
         """
         return HourNode[TDataType](
-            key_part=key_part,
             start=datetime(
                 self._start.year, self._start.month, self._start.day, key_part, 0, 0
             ),
@@ -281,6 +312,14 @@ class DayNode(NonDataNode[TDataType]):
         :param key: Key to extract from
         """
         return key.hour
+
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        return timestamp.day
 
 
 class MonthNode(NonDataNode[TDataType]):
@@ -298,7 +337,12 @@ class MonthNode(NonDataNode[TDataType]):
         # we handle the maximum possible number of days, independently of the
         # actual number of days in a given month
         # days are numbered with a base 1
-        super().__init__(key_part, 31, 1, start, start + relativedelta(months=1))
+        super().__init__(
+            max_children_number=31,
+            children_index_base=1,
+            start=start,
+            end=start + relativedelta(months=1),
+        )
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
         """
@@ -307,7 +351,6 @@ class MonthNode(NonDataNode[TDataType]):
         :param key_part: Key part for the day.
         """
         return DayNode[TDataType](
-            key_part=key_part,
             start=datetime(self._start.year, self._start.month, key_part, 0, 0, 0),
         )
 
@@ -319,22 +362,32 @@ class MonthNode(NonDataNode[TDataType]):
         """
         return key.day
 
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        return timestamp.month
+
 
 class YearNode(NonDataNode[TDataType]):
     """
     Node modelling a year.
     """
 
-    def __init__(self, key_part: int, start: datetime) -> None:
+    def __init__(self, start: datetime) -> None:
         """
         Constructor.
 
-        :param key_part: Key part of the level.
         :param start: Start of the range.
         """
         # 12 months, starting at 1
         super().__init__(
-            key_part, 12, 1, start=start, end=start + relativedelta(years=1)
+            max_children_number=12,
+            children_index_base=1,
+            start=start,
+            end=start + relativedelta(years=1),
         )
 
     def _create_next_level_instance(self, key_part: int) -> Node[TDataType]:
@@ -355,6 +408,14 @@ class YearNode(NonDataNode[TDataType]):
         """
         return key.month
 
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        return timestamp.year
+
 
 class SearchTree(Node[TDataType]):
     """
@@ -366,7 +427,6 @@ class SearchTree(Node[TDataType]):
         Constructor.
         """
         super().__init__(
-            key_part=-1,
             max_children_number=0,
             children_index_base=0,
             start=datetime.min,
@@ -384,7 +444,7 @@ class SearchTree(Node[TDataType]):
         """
         if key.year not in self._children or self._children[key.year] is None:
             node: Node[TDataType] = YearNode[TDataType](
-                key_part=key.year, start=datetime(key.year, 1, 1, 0, 0, 0)
+                start=datetime(key.year, 1, 1, 0, 0, 0)
             )
             self._children[key.year] = node
         else:
@@ -403,3 +463,12 @@ class SearchTree(Node[TDataType]):
         for year in range(start.year, end.year + 1):
             if year in self._children:
                 yield from self._children[year].get_values_for_interval(interval)
+
+    def _get_keypart(self, timestamp: datetime) -> int:
+        """
+        Extract the key part from the timestamp.
+
+        :param timestamp: Timestamp to extract the key part from.
+        """
+        # there actually is not key part at this level
+        return -1
