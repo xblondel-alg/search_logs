@@ -10,7 +10,7 @@ start:
 black:
 	black --exclude ".venv*|.vscode*" .
 
-## Apply mypy type checking, applying the rules in mypy.ini
+## Apply mypy type checking, using the rules in mypy.ini
 mypy:
 	mypy
 
