@@ -22,7 +22,7 @@ A Makefile provides you with the following commands:
 
 - `make black`: Apply black linter to the source and test trees
 - `make mypy`: Apply mypy type checking to the source and test trees (rules defined in mypy.ini)
-- `make pytest`: Execute tests stored in the tests directory, and calculate coverage (rules defined in pytest.ini)
+- `make test`: Execute tests stored in the tests directory, and calculate coverage (rules defined in pytest.ini)
 - `make start`: Start the application - See below
 
 Starting the application requires you to set the environment variable `DATASET_PATH` to the path of the TSV file containing the logs:
