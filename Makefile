@@ -16,7 +16,7 @@ mypy:
 
 ## Run unit and integration tests and calculate coverage, with the rules defined in pytest.ini
 test:
-	pytest tests/unit tests/integration
+	pytest tests/unit
 
 ## List available commands
 help:
