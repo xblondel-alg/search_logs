@@ -6,7 +6,7 @@ from src.date_prefix_parsing.date_prefix_parser import parse_timestamp
 
 class SearchEngine:
     """
-    Search engine that exposes the methods used the APIs
+    Search engine that exposes the methods used the APIs.
     """
 
     def __init__(self) -> None:

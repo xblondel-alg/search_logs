@@ -40,8 +40,8 @@ def get_date_interval(date_prefix: str) -> Tuple[datetime, datetime]:
 
     :param date_prefix: Date prefix to build the interval from.
 
-    Remark: There certainly is a smarter way to do this, with a dictionary of all the regexes, but this
-        make for a more readable, even though a bit tedious, code.
+    Remark: There certainly is a smarter way to do this, with a dictionary of all the regexes, but the
+        present approach make for a more readable, even though a bit tedious, code.
     """
     match = PREFIX_PARSER_REGEX_MINUTE.match(date_prefix)
     if match is not None:

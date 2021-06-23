@@ -27,6 +27,8 @@ class Node(ABC, Generic[TDataType]):
         :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
+        :param start: Start of the interval contained in the node.
+        :param end: End of the interval contained in the node (excluded).
         """
         self._key_part = key_part
         self._max_children_number = max_children_number
@@ -92,6 +94,8 @@ class NonDataNode(Node[TDataType]):
         :param key_part: Value at the given level (e.g. the year, the month etc.)
         :param children_number: Max number of children (0 for unlimited, else e.g. max is 12 for months, 31 for days, 23 for hours...)
         :param children_index_base: Indexing base for children (e.g. months and days start at 1, hours and minutes start at 0)
+        :param start: Start of the interval contained in the node.
+        :param end: End of the interval contained in the node (excluded).
         """
         super().__init__(key_part, max_children_number, children_index_base, start, end)
 
@@ -168,7 +172,8 @@ class MinuteNode(Node[TDataType]):
         """
         Constructor.
 
-        :param key_part: Key part at the given level (e.g. the year, the month etc.)
+        :param key_part: Key part of the level.
+        :param start: Start of the range.
         """
         super().__init__(key_part, 0, 0, start, start + timedelta(minutes=1))
         # since we are at a leaf node, we add the values in heap, as we will always return them all
@@ -205,6 +210,12 @@ class HourNode(NonDataNode[TDataType]):
     """
 
     def __init__(self, key_part: int, start: datetime) -> None:
+        """
+        Constructor.
+
+        :param key_part: Key part of the level.
+        :param start: Start of the range.
+        """
         # 60 minutes in an hour, base 0
         super().__init__(key_part, 60, 0, start, start + timedelta(hours=1))
 
@@ -241,6 +252,12 @@ class DayNode(NonDataNode[TDataType]):
     """
 
     def __init__(self, key_part: int, start: datetime) -> None:
+        """
+        Constructor.
+
+        :param key_part: Key part of the level.
+        :param start: Start of the range.
+        """
         # 24 hours in a day, base 0
         super().__init__(key_part, 24, 0, start, start + timedelta(days=1))
 
@@ -272,6 +289,12 @@ class MonthNode(NonDataNode[TDataType]):
     """
 
     def __init__(self, key_part: int, start: datetime) -> None:
+        """
+        Constructor.
+
+        :param key_part: Key part of the level.
+        :param start: Start of the range.
+        """
         # we handle the maximum possible number of days, independently of the
         # actual number of days in a given month
         # days are numbered with a base 1
@@ -306,7 +329,8 @@ class YearNode(NonDataNode[TDataType]):
         """
         Constructor.
 
-        :param key_part: Value at the given level (e.g. the year, the month etc.)
+        :param key_part: Key part of the level.
+        :param start: Start of the range.
         """
         # 12 months, starting at 1
         super().__init__(
